@@ -1,3 +1,4 @@
+package weeklyAssignments;
 public class BinarySearchTree<AnyType extends Comparable<? super AnyType>>{
 	private static class BinaryNode<AnyType>{
 	@SuppressWarnings("unused")

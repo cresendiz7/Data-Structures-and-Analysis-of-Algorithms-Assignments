@@ -1,3 +1,4 @@
+package weeklyAssignments;
 public class NbyNMatrix{
 	private static final int N =4;
 	public static boolean Exists(int[][] matrix, int X){

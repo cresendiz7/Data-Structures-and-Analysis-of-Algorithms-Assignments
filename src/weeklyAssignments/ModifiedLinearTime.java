@@ -1,3 +1,4 @@
+package weeklyAssignments;
 public class ModifiedLinearTime {
 	int startIndex, endIndex;
 	int maximumSum;

@@ -1,3 +1,4 @@
+package weeklyAssignments;
 public class ModifiedQuadratic {
 	int startIndex, endIndex;
 	int maximumSum;

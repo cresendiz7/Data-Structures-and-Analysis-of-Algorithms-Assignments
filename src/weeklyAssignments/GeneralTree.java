@@ -1,3 +1,4 @@
+package weeklyAssignments;
 import java.io.File;
 
 public class GeneralTree<E> {

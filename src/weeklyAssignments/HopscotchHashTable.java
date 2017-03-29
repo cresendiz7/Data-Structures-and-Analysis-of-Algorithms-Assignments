@@ -1,3 +1,4 @@
+package weeklyAssignments;
 /**
  * HopscotchHashTable implement Hopscotch hashing.
  * To change the table size change the DEFAULT_TABLE_SIZE variable value.

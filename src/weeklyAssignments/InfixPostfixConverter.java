@@ -1,3 +1,4 @@
+package weeklyAssignments;
 //Christian Resendiz
 
 import java.util.*;

@@ -1,3 +1,4 @@
+package weeklyAssignments;
 import java.util.Scanner;
 
 public class Recursion{ 

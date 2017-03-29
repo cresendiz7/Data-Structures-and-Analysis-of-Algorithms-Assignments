@@ -1,3 +1,4 @@
+package weeklyAssignments;
 //Christian Resendiz
 public class MyDoublyLinkedListGeneric<E> {
 	private MyLinkedListNode<E> start;

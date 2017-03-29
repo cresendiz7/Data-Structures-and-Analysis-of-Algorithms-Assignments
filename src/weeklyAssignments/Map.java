@@ -1,3 +1,4 @@
+package weeklyAssignments;
 public class Map<KeyType,ValueType>{
 	private QuadraticProbingHashTable<Entry<KeyType,ValueType>> items;
 	

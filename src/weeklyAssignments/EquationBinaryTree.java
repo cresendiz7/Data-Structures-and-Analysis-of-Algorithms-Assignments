@@ -1,3 +1,4 @@
+package weeklyAssignments;
 import java.util.*;
 
 public class EquationBinaryTree {

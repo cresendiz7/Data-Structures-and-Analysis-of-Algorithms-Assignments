@@ -1,3 +1,4 @@
+package weeklyAssignments;
 
 // QuadraticProbing Hash table class
 //

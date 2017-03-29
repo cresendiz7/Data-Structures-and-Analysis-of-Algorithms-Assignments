@@ -1,3 +1,4 @@
+package weeklyAssignments;
 /*public class BinaryTreeLevelTraverse{
 	public void printLevelOrder(){
 		for (int i = 0 ; i < height(root); i++)

@@ -1,3 +1,4 @@
+package weeklyAssignments;
 public class SimilarTrees{
 	Node root1, root2;
 	//Compares two binary trees based on structure

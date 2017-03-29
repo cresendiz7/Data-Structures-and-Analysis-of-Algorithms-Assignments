@@ -1,3 +1,4 @@
+package weeklyAssignments;
 
 public class MyStack<E> {
 	private MyLinkedListNode<E> top;
