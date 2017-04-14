@@ -1,363 +1,284 @@
 package weeklyAssignments;
-/**
- * HopscotchHashTable implement Hopscotch hashing.
- * To change the table size change the DEFAULT_TABLE_SIZE variable value.
- * Here we are allowing the duplicate values for insert.
- * @author Umang
- * @param <AnyType>
- */
-public class HopscotchHashTable<AnyType> {
 
-	private static final int DEFAULT_TABLE_SIZE = 150;
-	private static final int RANGE = 8;
-	private HashEntry<AnyType>[] array; // The array of elements
-	private int occupied; // The number of occupied cells
-	private int theSize;
+public class HopscotchHashTable<Type> {
 
-	public HopscotchHashTable() {
+	private static final int HOP_DISTANCE = 8;
+	private static final int DEFAULT_TABLE_SIZE = 101;
+	
+	private HashEntry<Type>[] array;
+	private int size;
+	private int occupied;
+	
+	public HopscotchHashTable(){
 		this(DEFAULT_TABLE_SIZE);
 	}
-
-	public HopscotchHashTable(int size) {
-		allocateArray(size);
-		doClear();
-	}
-
-	private void allocateArray(int arraySize) {
-		array = new HashEntry[arraySize];
-	}
-
-	private void doClear() {
+	
+	public HopscotchHashTable(int size){
+		array = new HashEntry[nextPrime(size)];
+		this.size = array.length;
 		occupied = 0;
-		for (int i = 0; i < array.length; i++)
-			array[i] = null;
 	}
-
-	/**
-	 * Generate hash value for the input value.
-	 * @param x
-	 * @return
-	 */
-	private int myhash(AnyType x) {
-		int hashVal = x.hashCode();
-
-		hashVal %= array.length;
-		if (hashVal < 0)
-			hashVal += array.length;
-
-		return hashVal;
-	}
-
-	/**
-	 * insert value into the table.
-	 * Here allowing the duplicate value so we can check collision cases.
-	 * @param x
-	 * @return
-	 */
-	public boolean insert(AnyType x) {
-
-		if (!isEmpty()) {
+	
+	public boolean insert(Type e){
+		if(contains(e))
 			return false;
+		
+		boolean isSuccess = insertData(e);
+		
+		HashEntry<Type>[] oldArray = array;
+		while(!isSuccess){
+			array = new HashEntry[nextPrime(size*2)];
+			occupied = 0;
+			size = array.length;
+			
+			for(HashEntry<Type> entry:oldArray){
+				if(entry!=null && entry.isActive){
+					isSuccess = insertData(entry.elem);
+					if(!isSuccess)
+						break;
+				}
+			}
+			if(isSuccess)
+				isSuccess = insertData(e);
 		}
-
-		int currentPos = findPos(x);
-
-		if (currentPos == -1) {
-			return false;
-		}
-
-		if (array[currentPos] != null) {
-			x = array[currentPos].element;
-			array[currentPos].isActive = true;
-		}
-
-		String hope;
-		if (array[currentPos] != null) {
-			hope = array[currentPos].hope;
-			x = array[currentPos].element;
-		} else {
-			hope = "10000000";
-		}
-
-		array[currentPos] = new HashEntry<>(x, hope, true);
-		theSize++;
-
-		// Rehash; see Section 5.5
-		// if (++occupied > array.length / 2)
-		// rehash();
-		// display();
+		
 		return true;
 	}
-
-	private void display() {
-		System.out.println("\n-----------------------Display after insert-------------------------------\n");
-		for (int i = 0; i < array.length; i++) {
-			if (array[i] != null) {
-				System.out.println("index :" + i + " array item :"
-						+ array[i].element + " hope:" + array[i].hope);
-			} else {
-				System.out.println("index :" + i + " array item :"
-						+ "--" + " hope:" + "--");
-			}
-		}
-	}
-
-	private boolean contains(AnyType x) {
-		
-		System.out.println("\n ----------- contains check for element ---------------:"+x);
-		
-		int currentPos = myhash(x);
-		int count = 0;
-		while (array[currentPos] != null && count < RANGE) {
-
-			if (array[currentPos].hope.charAt(count) == '1') {
-				if (array[currentPos + count].element.equals(x)) {
-					return true;
-				}
-			}
-			count++;
-		}
-
-		return false;
-	}
-
+	
 	/**
-	 * Findpos function find the next position to insert the element.
-	 * @param x - value to insert.
-	 * @return - position to value to insert.
+	 * contains()
+	 * returns true if the item is in the hashtable, else returns false.
 	 */
-	private int findPos(AnyType x) {
-		int offset = 0;
-		int currentPos = myhash(x);
-		int startPosition = currentPos;
-		int original = startPosition;
-		boolean flag = false;
-		boolean f = false;
-		// && !array[currentPos].element.equals(x)
-		while (array[currentPos] != null) {
-			currentPos++;
-
-			if (currentPos - startPosition >= 8
-					|| (((currentPos) < startPosition) && (array.length
-							- startPosition + currentPos) >= 8)) {
-				f = true;
-//				System.out.println("flag:" + f);
-			}
-			if (f
-					&& ((myhash(array[startPosition].element) - currentPos) >= RANGE
-							|| (currentPos - myhash(array[startPosition].element)) >= RANGE || ((currentPos - myhash(array[startPosition].element)) < 0 && (array.length
-							- myhash(array[startPosition].element) + currentPos) >= 8))) {
-				flag = true;
-				currentPos = nextJumpPosition(startPosition);
-				if (currentPos == -2) {
-					return -1;
-				}
-				startPosition = currentPos;
-				offset = 0;
-			}
-			if (currentPos >= array.length) {
-				currentPos = 0;
-			}
-		}
-
-		if (flag == true) {
-//			System.out.println("start:"+startPosition+"currentpos"+currentPos);
-			array[currentPos] = new HashEntry<>(array[startPosition].element,
-					"00000000", true);
-			StringBuilder string = new StringBuilder(
-					array[myhash(array[startPosition].element)].hope);
-			if ((currentPos - myhash(array[startPosition].element)) < 0) {
-				string.setCharAt(array.length
-						- myhash(array[startPosition].element) + currentPos,
-						'1');
-			} else {
-				string.setCharAt(currentPos
-						- myhash(array[startPosition].element), '1');
-			}
-			array[myhash(array[startPosition].element)].hope = string
-					.toString();
-			if (array[myhash(array[startPosition].element)].hope
-					.charAt(startPosition
-							- myhash(array[startPosition].element)) == '1') {
-				string = new StringBuilder(
-						array[myhash(array[startPosition].element)].hope);
-				string.setCharAt(
-						(startPosition - myhash(array[startPosition].element)),
-						'0');
-				array[myhash(array[startPosition].element)].hope = string
-						.toString();
-			}
-			AnyType x1 = x;
-			array[startPosition] = new HashEntry<>(x1,
-					array[startPosition].hope, true);
-			StringBuilder temp = new StringBuilder(array[myhash(x1)].hope);
-			if (startPosition-myhash(x1) < 0) {
-				temp.setCharAt(array.length - myhash(x1) + startPosition, '1');
-			} else {
-				temp.setCharAt(startPosition - myhash(x1), '1');
-			}
-			array[myhash(x1)].hope = temp.toString();
-			currentPos = startPosition;
-		} else {
-			if (startPosition != currentPos) {
-//				System.out.println("=" + currentPos + " start pos"
-//						+ startPosition);
-				array[currentPos] = new HashEntry<>(x, "00000000", true);
-				StringBuilder temp = new StringBuilder(
-						array[startPosition].hope);
-				int p;
-				if (currentPos - startPosition < 0) {
-					p = array.length - startPosition + currentPos;
-					temp.setCharAt(p, '1');
-				} else {
-					temp.setCharAt(currentPos - startPosition, '1');
-				}
-
-				AnyType x1 = array[startPosition].element;
-				array[startPosition] = null;
-				array[startPosition] = new HashEntry<>(x1, temp.toString(),
-						true);
-				currentPos = startPosition;
-			}
-		}
-
-		return currentPos;
-	}
-
-	private boolean isEmpty() {
-		for (int i = 0; i < array.length; i++) {
-			if (array[i] == null) {
+	public boolean contains(Type e){
+		int location = myHash(e);
+		
+		for(int i=0; i<HOP_DISTANCE; i++){
+			int curr = location+i;
+			if(curr > size-1)
+				curr -= size;
+			
+			if(array[curr] != null && array[curr].isActive && array[curr].elem.equals(e)){
 				return true;
 			}
 		}
+		
 		return false;
 	}
-
-	private int nextJumpPosition(int startPosition) {
-		int position = startPosition + 1;
-		int c = checkHope(position);
-		while (c == -1) {
-			if (position >= array.length) {
-				position = 0;
-				c = checkHope(position);
+	
+	
+	public void remove(Type e){
+		int location = myHash(e);
+		
+		for(int i=0; i<HOP_DISTANCE; i++){
+			int curr = location+i;
+			if(curr > size-1)
+				curr -= size;
+			
+			if(array[curr] != null && array[curr].isActive && array[curr].elem.equals(e)){
+				array[curr].isActive = false;
+				array[myHash(e)].hop[i] = 0;
+				occupied--;
+				return;
 			}
-			if (position == startPosition) {
-				return -2;
-			}
-			c = checkHope(position++);
 		}
-		return c;
 	}
 
-	private int checkHope(int position) {
-		if (array[position] != null
-				&& (!array[position].hope.equals("00000000") && !array[position].hope
-						.equals("00000001"))) {
-			for (int i = 0; i < array[position].hope.length(); i++) {
-				if (array[position].hope.charAt(i) == '1') {
-					return position + i;
+	
+	private boolean insertData(Type e){
+		int currLocation = findLocation(e);
+		if(currLocation < 0)
+			return false;
+		
+		int orgLocation = myHash(e);
+		
+		while(!isValid(currLocation, orgLocation)){
+			int upLocation = swapUp(currLocation);
+			if(upLocation < 0){
+				return false;
+			}
+			currLocation = upLocation;
+		}
+		
+		addData(e, currLocation);
+		occupied++;
+		return true;
+	}
+	
+	private int findLocation(Type e){
+		int location = myHash(e);
+		int count = 0;
+		while(array[location] != null && array[location].isActive){
+			if(count++ > size)
+				return -1;
+			location++;
+			if(location > size-1)
+				location -= size;
+		}
+		return location;
+	}
+	
+	private int swapUp(int curr){
+		int location;
+		int rst;
+		for(int i=HOP_DISTANCE-1; i>=1; i--){
+			location = curr-i;
+			if(location < 0)
+				location += size;
+			
+			for(int j=0; j<i; j++){
+				if(array[location].hop[j] == 1){
+					array[location].hop[j] = 0;
+					array[location].hop[i] = 1;
+					rst = location + j;
+					if(rst>size-1)
+						rst -= size;
+					addData(array[rst].elem, curr);
+					array[rst].isActive = false;
+					
+					return rst;
 				}
 			}
 		}
 		return -1;
 	}
-
-	private static class HashEntry<AnyType> {
-		public AnyType element; // the element
-		public String hope; // hope
-		public boolean isActive; // false if marked deleted
-
-		public HashEntry(AnyType e) {
+	
+	private void addData(Type e, int location){
+		if(array[location] == null){
+			array[location] = new HashEntry<Type>(e);
+		}
+		else{
+			array[location].elem = e;
+			array[location].isActive = true;
+		}
+		
+		int orgLocation = myHash(e);
+		if(orgLocation > location)
+			location += size;
+		int dist = location-orgLocation;
+		array[orgLocation].hop[dist] = 1;
+	}
+	
+	private boolean isValid(int location, int orgLocation){
+		if(orgLocation > location)
+			location += size;
+		
+		int dist = location-orgLocation;
+		if(dist < HOP_DISTANCE && dist >= 0)
+			return true;
+		return false;
+	}
+	
+	private int myHash(Type e){
+		int hashVal = e.hashCode();
+		hashVal %= size;
+		if(hashVal < 0)
+			hashVal += size;
+		
+		return hashVal;
+	}
+	
+	private static class HashEntry<Type>{
+		public Type elem;                // element saved in current cell.
+		public boolean isActive;         // false when elem is removed and no new elem is added to this cell
+		public int[] hop;                // Hop information
+		
+		public HashEntry(Type e){
 			this(e, true);
 		}
-
-		public HashEntry(AnyType e, boolean i) {
-			element = e;
-			isActive = i;
-		}
-
-		public HashEntry(AnyType e, String h, boolean i) {
-			element = e;
-			hope = h;
-			isActive = i;
+		
+		public HashEntry(Type e, boolean b){
+			elem = e;
+			isActive = b;
+			hop = new int[HOP_DISTANCE];
 		}
 	}
+	
+	private int nextPrime(int x){
+		if(x%2 == 0)
+			x += 1;
+		
+		while(!isPrime(x))
+			x += 2;
+		
+		return x;
+	}
+	
+	private boolean isPrime(int x){
+		if(x == 2 || x == 3)
+			return true;
+		
+		if(x ==1 || x%2 ==0)
+			return false;
+		
+		for(int i=3; i*i<=x; i+=2)
+			if(x%i == 0)
+				return false;
+		
+		return true;
+	}
+	
+	public int getTableSize(){
+		return size;
+	}
+	
+	public int getOccupied(){
+		return occupied;
+	}
+	
+	
+	public static void main(String args[]){
+		System.out.println( "-------------------------" );
+		
+		System.out.println( "Test Case 1:" );
+		HopscotchHashTable<Integer> hash = new HopscotchHashTable<Integer>(9);
+		System.out.println( "Create a empty hashtable with table size: " + hash.getTableSize());
+		System.out.println( "Does the table contain number 11?  " + hash.contains(11));
+		System.out.println( "Insert numbers 1 to 15 into the hashtable." );
+		for(int i=1; i<=15; i++)
+			hash.insert(i);
+		System.out.println( "Does the table contain number 11?  " + hash.contains(11));
+		System.out.println( "Remove number 11." );
+		hash.remove(11);
+		System.out.println( "Does the table contain number 11?  " + hash.contains(11));
+		System.out.println( "The table size changes to: " + hash.getTableSize() + " because of rehashing.");
+		
+		System.out.println( "-------------------------" );
+		
+		System.out.println( "Test Case 2:" );
+		System.out.println( "This is the test case used by the author of the text book." );
+		HopscotchHashTable<String> H = new HopscotchHashTable<String>();
+		
+		long startTime = System.currentTimeMillis( );
+        
+	    final int NUMS = 20000;
+	    final int GAP  =   37;
 
-	public static void main(String[] args) {
-		HopscotchHashTable<Integer> H = new HopscotchHashTable<>();
-		// System.out.println(H.insert(0));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(3));
-		 System.out.println("insert :" +H.insert(2));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(1));
-		 System.out.println("insert :" +H.insert(4));
-		 System.out.println("insert :" +H.insert(5));
-		 System.out.println("insert :" +H.insert(6));
-		 System.out.println("insert :" +H.insert(7));
-		 System.out.println("insert :" +H.insert(8));
-		 System.out.println("insert :" +H.insert(9));
-		 System.out.println("insert :" +H.insert(10));
-		 System.out.println("insert :" +H.insert(25));
-		 System.out.println("insert :" +H.insert(26));
-		 System.out.println("insert :" +H.insert(28));
-		 
-		 H.display();
-		 
-//
-//		System.out.println("insert :" + H.insert(0));
-//		System.out.println("insert :" + H.insert(1));
-//		System.out.println("insert :" + H.insert(2));
-//		System.out.println("insert :" + H.insert(3));
-//		System.out.println("insert :" + H.insert(4));
-//		System.out.println("insert :" + H.insert(7));
-//		System.out.println("insert :" + H.insert(8));
-//		System.out.println("insert :" + H.insert(7));
-//		System.out.println("insert :" + H.insert(7));
-//		System.out.println("insert :" + H.insert(7));
-		
+	    System.out.println( "Checking... (no more output means success)" );
 
-		System.out.println("\n------------------NEW INSERT--------------------------------\n");
-		
-		HopscotchHashTable<Integer> H1 = new HopscotchHashTable<>();
-		 
-		 
-		System.out.println("insert :" + H1.insert(73));
-		System.out.println("insert :" + H1.insert(73));
-		System.out.println("insert :" + H1.insert(76));
-		System.out.println("insert :" + H1.insert(75));
-		System.out.println("insert :" + H1.insert(74));
-		System.out.println("insert :" + H1.insert(72));
-		System.out.println("insert :" + H1.insert(73));
-		System.out.println("insert :" + H1.insert(73));
-		System.out.println("insert :" + H1.insert(148));
-		System.out.println("insert :" + H1.insert(148));
-		System.out.println("insert :" + H1.insert(148));
-		System.out.println("insert :" + H1.insert(148));
-		System.out.println("insert :" + H1.insert(73));
-		System.out.println("insert :" + H1.insert(73));
-		System.out.println("insert :" + H1.insert(73));
-		
-		H1.display();
-		System.out.println("contains :" + H1.contains(73));
-		System.out.println("contains :" + H1.contains(122));
-		
-		
-		// HopscotchHashTable<String> H2 = new HopscotchHashTable<>();
-				// System.out.println(H2.insert("C"));
-				// System.out.println(H2.insert("A"));
-				// System.out.println(H2.insert("D"));
-				// System.out.println(H2.insert("B"));
-				// System.out.println(H2.insert("B"));
-				// System.out.println(H2.insert("D"));
-				// System.out.println(H2.insert("A"));
-		
-//		H2.display();
+
+	    for( int i = GAP; i != 0; i = ( i + GAP ) % NUMS )
+	        H.insert( ""+i );
+	    
+	    for( int i = GAP; i != 0; i = ( i + GAP ) % NUMS )
+	        if( H.insert( ""+i ) )
+	            System.out.println( "OOPS!!! " + i );
+	    for( int i = 1; i < NUMS; i+= 2 )
+	        H.remove( ""+i );
+
+	    for( int i = 2; i < NUMS; i+=2 )
+	        if( !H.contains( ""+i ) )
+	            System.out.println( "Find fails " + i );
+
+	    for( int i = 1; i < NUMS; i+=2 )
+	    {
+	        if( H.contains( ""+i ) )
+	            System.out.println( "FOOPS!!! " +  i  );
+	    }
+	        
+	    long endTime = System.currentTimeMillis( );
+	        
+	    System.out.println( "Elapsed time: " + (endTime - startTime) );
+	    System.out.println( "H size is: " + H.getTableSize() );
+	    System.out.println( "Array size is: " + (H.getOccupied()));
 	}
 }
