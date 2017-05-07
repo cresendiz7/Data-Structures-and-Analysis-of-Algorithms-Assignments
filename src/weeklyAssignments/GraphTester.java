@@ -1,4 +1,4 @@
-package inClassAssignments.chapter9;
+package weeklyAssignments;
 
 
 public class GraphTester {

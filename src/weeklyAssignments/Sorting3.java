@@ -1,4 +1,4 @@
-package inClassAssignments.chapter7;
+package weeklyAssignments;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package inClassAssignments.chapter9;
+package weeklyAssignments;
 
 import java.util.LinkedList;
 import java.util.Map;
